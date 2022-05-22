@@ -1,0 +1,29 @@
+*{
+    margin: 0;              /* 消除边界*/
+    padding: 0;
+}
+
+
+#app:before{               /*使用before 选择器在被选元素的内容前面插入内容。*/
+    width: 100%;
+    height: 100%;           /*设置为全屏背景模式*/
+    background-image: url("../img/imgbg.jpg");
+    background-size: 100% 100%  ;
+    background-attachment: fixed;      /*将图片固定*/
+    position: absolute;                 /*图片定位*/
+    top: 0;
+    left: 0;
+    content: "";
+    z-index: -1;                    /*设置该标签等级，让其始终位于最上层*/
+    -webkit-filter: opacity(70%);   /*设置透明度   blur还可以改变照片的模糊度*/
+    filter: opacity(30%);
+}
+
+
+.transPic{
+    transition: all 0.5s; /*transition:过度属性*/
+    cursor: pointer;  /*当鼠标进入图片的时候，鼠标的样式变为手型 */
+}
+.transPic:hover{
+    transform: scale(1.2); /*transform:变形属性，scale：缩放1.1倍 */
+}

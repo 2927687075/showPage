@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>首页</title>
+    <link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="../css/mycss.css" />
+    <script src="../js/jquery.js"  type="text/javascript"></script>
+    <script src="../js/jquery-3.4.1.js"></script>
+    <script src="../js/ajaxfileupload.js"  type="text/javascript"></script>
+    <script src="../js/bootstrap.min.js" type="text/javascript" charset="UTF-8"></script>
+    <script src="../js/axios.js"></script>
+    <script src="../js/vue.min.js"></script>
+
+
+
+</head>
+<body>
+    <div id="app">
+        <h2 style="padding-left: 620px;padding-right: 200px">明星合集</h2>
+
+        <!--输入框和按钮-->
+        <div>
+            <div class="form-group col-md-10" style="padding-left: 220px;padding-right: 50px" >
+                <input type="text" style="height: 40px" v-model="name" @keyup.enter="searchPic(name)" class="form-control" placeholder="输入关键字">
+            </div>
+            <button class="btn btn-default" style="width: 40px; height: 40px;padding-right: 45px;" @click="searchPic(name)"> 搜索 </button>
+
+            <button class="btn btn-default" style="width: 40px; height: 40px;padding-right: 70px;" id="openBtn"> 添加图片 </button>
+        </div>
+
+        <!--图片显示主体部分-->
+        <div  style="padding-left: 250px;padding-right: 0px">
+            <div class="row" >
+                <div class="col-md-3 transPic" v-for="(item,index) in stars" :key="index" >
+                    <div class="thumbnail " >
+                        <img :src="item.src" alt="..." >
+                        <h3>{{item.name}}</h3>
+                        <p>{{item.produce}}</p>
+                        <span style="padding-left: 100px">
+                            <button class="btn btn-default"  @click="updatePic(item)">
+                                <span class="glyphicon glyphicon-pencil"></span>修改</button>
+                            <button class="btn btn-info" @click="deletePic(item.id)">
+                                <span class="glyphicon glyphicon-trash" ></span>删除</button>
+                        </span>
+
+                    </div>
+                </div>
+            </div>
+            <div style="padding-left: 280px;padding-right: 0px">
+                <nav aria-label="Page navigation example">
+                    <div>
+                        <ul class="pagination form-inline">
+                            <li v-if="prePage"><a href="javascript:void(0)"  @click="nextData(pageInfo.pageNum - 1)">上一页</a></li>
+                            <li v-if="prePage"><a href="javascript:void(0)" @click="nextData(pageInfo.pageNum - 1)" >{{pageInfo.pageNum-1}}</a></li>
+
+                            <li class="active"><a href="javascript:void(0)" @click="nextData(pageInfo.pageNum)">{{pageInfo.pageNum}}</a></li>
+
+                            <li v-if="nextPage"><a href="javascript:void(0)" @click="nextData(pageInfo.pageNum + 1)">{{pageInfo.pageNum+1}}</a></li>
+                            <li v-if="nextPage"><a href="javascript:void(0)" @click="nextData(pageInfo.pageNum + 1)">下一页</a></li>
+
+                            <li ><span>总共{{totalCounts}}页</span></li>
+                            <span> &ensp; 跳转到 &ensp; <input class="form-control" style="width: 100px;"  type="text" id="change" placeholder="请输入页码" @change="jumpPageNum()"> &ensp; 页</span>
+
+                        </ul>
+
+                    </div>
+                </nav>
+            </div>
+        </div>
+
+        <!-- 添加 模态框（Modal） -->
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="myModalLabel">请添加信息</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <form class="form-horizontal" role="form" enctype="multipart/form-data" >
+
+                                <div class="form-group">
+                                    <!--label中的for表示与表单中的哪个表单元素绑定-->
+                                    <label for="text" class="control-label col-sm-2">姓名</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" style="height: 40px" id="name" class="form-control" placeholder="请输入姓名">
+                                    </div>
+                                </div>
+
+                                <div class="form-group"  >
+                                    <label for="text" class="control-label col-sm-2" > 介绍 </label>
+                                    <div class="col-sm-8">
+                                        <input type="text" style="height: 40px" id="produce" class="form-control" placeholder=" 请输⼊信息 " />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div id="imgDiv" style="display:block;padding-left: 120px; width: 100px; height: 100px;">
+
+                                    </div>
+                                </div>
+
+                                <div class="form-group"  >
+                                    <label for="text" class="control-label col-sm-2" > 图片 </label>
+                                    <div class="col-sm-8">
+                                        <input id="upLoad" name="upLoad" type="file" style="height: 40px"  class="form-control" onchange="fileChange()" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+
+                                </div>
+                            </form>
+
+                            <div class="col-sm-offset-2 col-sm-10">
+                                <input type="button" class="btn btn-default" @click="addInfo(name,produce)" value="提交">
+                                <input type="button" class="btn btn-default" id="closeBtn" value="取消">
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+        <!--修改图片 模态框-->
+        <div class="modal fade" id="myModalUpdate" tabindex="-1" role="dialog" aria-labelledby="myModalLabelUpdate" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="myModalLabelUpdate">点击进行修改</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <form class="form-horizontal" role="form" enctype="multipart/form-data">
+
+                                <div class="form-group">
+                                    <!--label中的for表示与表单中的哪个表单元素绑定-->
+                                    <label for="text" class="control-label col-sm-2">姓名</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" style="height: 40px" id="updateName" class="form-control" v-model="entity.name" placeholder="请输入姓名">
+                                    </div>
+                                </div>
+
+                                <div class="form-group"  >
+                                    <label for="text" class="control-label col-sm-2" > 介绍 </label>
+                                    <div class="col-sm-8">
+                                        <input type="text" style="height: 40px" id="updateProduce"  v-model="entity.produce" class="form-control" placeholder=" 请输⼊信息 " />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div id="updateImgDiv" style="display:block;padding-left: 120px; width: 90px; height: 100px;">
+                                        <img :src="entity.src" style="width: 100px;height: 100px">
+                                    </div>
+                                </div>
+
+                                <div class="form-group"  >
+                                    <label for="text" class="control-label col-sm-2" > 图片 </label>
+                                    <div class="col-sm-8">
+                                        <input id="updateUpload" name="updateUpLoad" type="file" style="height: 40px"  class="form-control" onchange="fileChange()" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+
+                                </div>
+                            </form>
+
+                            <div class="col-sm-offset-2 col-sm-10">
+                                <input type="button" class="btn btn-default" @click="subUpdate()" value="提交">
+                                <input type="button" class="btn btn-default" id="closeUpdateBtn"  @click="entity={}" value="取消">
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+        <!-- 删除图片 模态框（Modal） -->
+        <div class="modal fade" id="myModalDel" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="myModalLabelDel">请确认</h4>
+                    </div>
+                    <div class="modal-body">你确定删除吗？</div>
+                    <div class="modal-footer">
+                        <button class="btn btn-default" id="closeBtnDel">取消</button>
+                        <button class="btn btn-default" @click="reDeletePic">确认删除</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+
+    <script>
+
+
+
+        <!--vue对象-->
+        var app = new Vue({
+            el:"#app",
+            data:{
+                stars:[],
+                pageInfo:[],
+                prePage:false,
+                nextPage:false,
+                totalCounts:0,
+                totalPicCounts:0,
+                name:"",
+                entity:{},
+                picId:"",
+
+            },
+            created:function () {
+                this.nextData(1);
+
+            },
+            methods:{
+                nextData:function(pageNum){
+                    axios.get('/showpage/showPageInfo?pageNum='+pageNum).then(res =>{
+                        this.pageInfo = res.data;
+                        this.totalPicCounts = res.data.total;
+                        this.prePage = res.data.hasPreviousPage;
+                        this.nextPage = res.data.hasNextPage;
+
+                        this.totalCounts = parseInt(res.data.total / res.data.pageSize);
+                        if (res.data.total % res.data.pageSize > 0){
+                            this.totalCounts = this.totalCounts + 1;
+                        }
+
+                        this.stars = res.data.list;
+                        this.stars.forEach(item =>{
+                            let imgSrc = item.img;
+                            item.src = imgSrc;
+                            let picId = item.id;
+                            item.id = picId;
+                        })
+                    })
+                },
+                searchPic:function(name){
+                    axios.get("/showpage/showPageLike?name="+name).then(res =>{
+                        this.pageInfo = res.data;
+                        this.prePage = res.data.hasPreviousPage;
+                        this.nextPage = res.data.hasNextPage;
+
+                        this.totalCounts = parseInt(res.data.total / res.data.pageSize);
+                        if (res.data.total % res.data.pageSize > 0){
+                            this.totalCounts = this.totalCounts + 1;
+                        }
+                        this.totalCounts = 1;
+
+                        this.stars = res.data.list;
+                        this.stars.forEach(item =>{
+                            let imgSrc = item.img;
+                            item.src = imgSrc;
+                            let picId = item.id;
+                            item.id = picId;
+                        })
+                    })
+                },
+
+
+                addInfo:function(name,produce){
+                    var name = $("#name").val();
+                    var produce = $("#produce").val();
+                    let data = {"name":name,"produce":produce};
+                    axios.post("/showpage/addInfo",data).then(res =>{
+                        if (res.status == 200){
+                            alert("添加成功");
+                            if (this.totalPicCounts % 3 == 0){
+                                this.nextData(this.totalCounts + 1);
+                            }else {
+                                this.nextData(this.totalCounts);
+                            }
+                            $('#myModal').modal("hide");
+                        }
+                    })
+                },
+
+                jumpPageNum:function (){
+                    var num = $("#change").val();
+                    if (num%1 !==0 || num>this.totalCounts || num <= 0){
+                        alert("输入有误，请重新输入");
+                        return;
+                    }
+                    this.nextData(num);
+                },
+
+                updatePic:function (obj){
+                    this.entity = JSON.parse(JSON.stringify(obj));
+                    $("#myModalUpdate").modal("show");
+                },
+
+                subUpdate:function () {
+                    axios.put("/showpage/update",this.entity).then(res =>{
+                        if (res.status == 200){
+                            alert("修改成功");
+                            $("#myModalUpdate").modal("hide");
+                            this.nextData(this.pageInfo.pageNum);
+                        }
+                    })
+                },
+
+                deletePic:function (picId){
+                    this.picId = picId;
+                    $("#myModalDel").modal("show");
+                },
+
+                reDeletePic:function (){
+                    axios.get("/showpage/delete?id="+this.picId).then(res =>{
+                        if (res.status == 200){
+                            alert("删除成功");
+                            $("#myModalDel").modal("hide");
+                            if (this.totalPicCounts % 3 == 1){
+                                this.nextData(this.pageInfo.pageNum - 1);
+                            }else {
+                                this.nextData(this.pageInfo.pageNum);
+                            }
+                        }
+                    })
+                },
+
+
+
+
+
+            }
+        });
+
+        /*ajax实现提交信息*/
+        // $("#subBtn").click(function () {
+        //     var name = $("#name").val();
+        //     var produce = $("#produce").val();
+        //     $.post("/showpage/addInfo",{"name":name,"produce":produce},function (res) {
+        //         console.log(res);
+        //         if (res == 1){
+        //             alert("添加成功");
+        //             $('#myModal').modal("hide");
+        //         }
+        //     })
+        // });
+
+
+
+    </script>
+
+    <!--打开关闭模态框-->
+    <script type="text/javascript">
+        /*添加图片 模态框的打开、关闭*/
+        $("#openBtn").click(function(){
+            $('#myModal').modal("show");
+        });
+
+        $("#closeBtn").click(function(){
+            $('#myModal').modal("hide");
+        });
+
+        /*修改图片 模态框的打开、关闭*/
+        $("#closeUpdateBtn").click(function(){
+            $('#myModalUpdate').modal("hide");
+        });
+
+        /*删除图片 模态框的打开、关闭*/
+        $("#closeBtnDel").click(function(){
+            $('#myModalDel').modal("hide");
+        });
+
+
+
+
+
+        /*点击上传文件后局部刷新显示图片*/
+        function fileChange() {
+            $.ajaxFileUpload({
+                url: "http://localhost:8081/showpage/uploadImg",                      //用于文件上传的服务器端请求地址
+                secureuri: false,                       //安全协议，一般设置为false
+                fileElementId: "upLoad",                //文件上传控件的id属性  <input type="file" id="pimage" name="pimage" />
+                dataType: "json",
+                success: function(obj) {
+                    $("#imgDiv").empty();               //清空原有数据
+                    //创建一个图片的标签
+                    var imgObj = $("<img>");
+                    //给img标签对象追加属性
+                    imgObj.attr("src", "../img/"+obj.imgurl);
+                    imgObj.attr("width", "100px");
+                    imgObj.attr("height", "100px");
+
+                    //将图片img标签追加到imgDiv末尾
+                    $("#imgDiv").append(imgObj);
+
+                }
+            })
+        }
+    </script>
+
+</body>
+</html>
